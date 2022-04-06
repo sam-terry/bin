@@ -1,0 +1,50 @@
+#!/bin/bash
+# Script for setting up new multiplexer sessions
+
+
+usage() { echo "Usage: okno [-h|-H] [-a|-A] NAME"; }
+
+# Datestamp function
+cdt() { date +'%Y%m%d-%H%M%S'; }
+
+
+ATTACH=''
+while getopts "hHaA" options; do
+	case ${options} in
+		h|H)
+			usage
+			exit
+			;;
+		a|A)
+			ATTACH='TRUE'
+			shift "$((OPTIND-1))"
+			;;
+	esac
+done		
+
+sessionName=''
+if [ -z "$1" ]; then
+	sessionName=`cdt`
+else
+	sessionName=$1
+fi 
+
+tmux has-ses -t="$sessionName" 2>/dev/null
+
+if [ $? -ne 0 ]; then
+	TMUX='' tmux new-ses -d -s $sessionName
+fi
+
+
+if [ -z $ATTACH ]; then
+	exit 0;
+fi
+
+
+
+
+if [ -z "$TMUX" ]; then
+	tmux att -t $sessionName
+else
+	tmux switch-client -t $sessionName
+fi
